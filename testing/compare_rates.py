@@ -82,7 +82,7 @@ def aurora_sweep(rates, sym, ne_arr, Te_arr):
     """
     ne_arr = np.atleast_1d(np.asarray(ne_arr, float))
     Te_arr = np.atleast_1d(np.asarray(Te_arr, float))
-    rion, rrec, rrad = rates.all_rates(sym, ne_arr, Te_arr)
+    rion, rrec, rrad = rates.all_rates(sym, ne_arr, Te_arr, 0.0)
     # Guarantee 2-D (Zmax+1, N) even if the back-end collapsed a length-1 sweep.
     rion = np.atleast_2d(rion)
     rrec = np.atleast_2d(rrec)

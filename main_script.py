@@ -18,15 +18,13 @@ D2 -> H aliasing. The alias only applies inside the rates classes and the
 injector Torr-L conversion (where molecular species deliver 2 atoms each).
 """
 
-import os
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, trapezoid
 
 
 from kprad.util.physics import log_lambda_ei
-from kprad.util.constants import _MU0, _EE
+from kprad.util.constants import _MU0
 from kprad.util.solver import fkprad
 from kprad.util.atomic_adas import AuroraRates
 from kprad.util.atomic_cretin import CretinRates
@@ -45,9 +43,8 @@ from kprad.util.postprocess import (
 from kprad.util.profile import uniform_grid
 
 # Resolution order: CLI argument > $KPRAD_CONFIG > this fallback path.
-DEFAULT_CONFIG_PATH = "/Users/plh/Documents/python_code/kprad/configs/206990_CSP.yaml"
 DEFAULT_CONFIG_PATH = (
-    "/Users/plh/Documents/python_code/kprad/configs/206990_PELLET.yaml"
+    "/Users/plh/Documents/git/kprad_devlopment/configs/206990_PELLET.yaml"
 )
 
 
