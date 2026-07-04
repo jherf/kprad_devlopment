@@ -18,20 +18,26 @@ D2 -> H aliasing. The alias only applies inside the rates classes and the
 injector Torr-L conversion (where molecular species deliver 2 atoms each).
 """
 
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, trapezoid
 
+from main.globals import KPRAD_PARENT_DIRECTORY, DEFAULT_CONFIG_PATH
 
-from kprad.util.physics import log_lambda_ei
-from kprad.util.constants import _MU0
-from kprad.util.solver import fkprad
-from kprad.util.atomic_adas import AuroraRates
-from kprad.util.atomic_cretin import CretinRates
-from kprad.util.plotting import plot_main_results
-from kprad.util.config import config_loader, build_initial_state, build_injectors
-from kprad.util.layout import SolverLayout
-from kprad.util.postprocess import (
+from main.util.physics import log_lambda_ei
+from main.util.constants import _MU0
+from main.util.solver import fkprad
+from main.util.atomic_adas import AuroraRates
+from main.util.atomic_cretin import CretinRates
+from main.util.plotting import plot_main_results
+from main.util.config import config_loader, build_initial_state, build_injectors
+from main.util.layout import SolverLayout
+from main.util.postprocess import (
     postprocess,
     compute_energy_balance,
     compute_injection,
@@ -40,12 +46,7 @@ from kprad.util.postprocess import (
     compute_radiated_power,
     save_results_h5,
 )
-from kprad.util.profile import uniform_grid
-
-# Resolution order: CLI argument > $KPRAD_CONFIG > this fallback path.
-DEFAULT_CONFIG_PATH = (
-    "/Users/plh/Documents/git/kprad_devlopment/configs/206990_PELLET.yaml"
-)
+from main.util.profile import uniform_grid
 
 
 def main(config_path: str | None = None, show: bool = True) -> dict:

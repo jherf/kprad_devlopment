@@ -46,8 +46,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 
-from kprad.util.atomic_cretin import CretinRates
-from kprad.util.atomic_adas import AuroraRates
+from main.util.atomic_cretin import CretinRates
+from main.util.atomic_adas import AuroraRates
 
 
 # ---------------------------------------------------------------------------

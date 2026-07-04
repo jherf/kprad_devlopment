@@ -27,9 +27,10 @@ Charge state indexing is 0-based here (z=0 neutral, ..., z = Z-1 fully stripped)
 import numpy as np
 import warnings
 from scipy.interpolate import RegularGridInterpolator
-from kprad.util.read_rate_nLTE import read_rate_nLTE
-from kprad.util.atomic_adas import _PERIODIC, _IONIZATION_ENERGIES, _ADAS_ALIAS
-from kprad.util.constants import _MIN_NE, _MIN_TE, _MIN_TA, _CRETIN_PATH
+from main.util.read_rate_nLTE import read_rate_nLTE
+from main.util.atomic_adas import _PERIODIC, _IONIZATION_ENERGIES, _ADAS_ALIAS
+from main.util.constants import _MIN_NE, _MIN_TE, _MIN_TA
+from main.globals import CRETIN_PATH
 
 # Default grid (matches all three MATLAB scripts)
 _DEFAULT_neV = [1e10, 1e12, 1e14, 1e16]  # electron densities      [1/cm^3]
@@ -108,7 +109,7 @@ class CretinRates:
         self._method = method
         self._rgi_method = rgi_method
         self._NTepp = NTepp
-        self._path_template = data_path or _CRETIN_PATH
+        self._path_template = data_path or CRETIN_PATH
 
         # ---------------------------------------------------------------------
         # ---- Convert D2, T, etc. to H

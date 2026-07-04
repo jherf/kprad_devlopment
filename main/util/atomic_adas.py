@@ -35,7 +35,7 @@ Prad            : eV cm^3 / s
 import numpy as np
 import aurora
 from scipy.interpolate import RegularGridInterpolator
-from kprad.util.constants import _EE, _MIN_NE, _MIN_TE
+from main.util.constants import _EE, _MIN_NE, _MIN_TE
 
 # ---- Atomic tables --------------------------------------------------
 _RATE_KEYS = ["scd", "acd", "plt", "prb"]
@@ -149,12 +149,8 @@ class AuroraRates:
                 f"_IONIZATION_ENERGIES in atomic.py before using them."
             )
 
-        self._log_ne = np.linspace(
-            np.log10(ne_range[0]), np.log10(ne_range[1]), n_ne
-        )
-        self._log_te = np.linspace(
-            np.log10(Te_range[0]), np.log10(Te_range[1]), n_Te
-        )
+        self._log_ne = np.linspace(np.log10(ne_range[0]), np.log10(ne_range[1]), n_ne)
+        self._log_te = np.linspace(np.log10(Te_range[0]), np.log10(Te_range[1]), n_Te)
 
         # ---- Maximum charge state per elemente (= atomic number)
         self.Zmax = {sym: _PERIODIC[sym] for sym in self.elements}

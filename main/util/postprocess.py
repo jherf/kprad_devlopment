@@ -18,8 +18,9 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-from kprad.util.constants import _MIN_TE, _EE, _W_FLOOR_MJ, OUTPUT_DIR
-from kprad.util.layout import SolverLayout
+from main.util.constants import _MIN_TE, _EE, _W_FLOOR_MJ
+from main.util.layout import SolverLayout
+from main.globals import OUTPUT_DIR
 
 
 def postprocess(tV: np.ndarray, solY: np.ndarray, layout, Vcell: np.ndarray) -> dict:
@@ -298,7 +299,7 @@ def compute_energy_balance(
         resid_rel         : max |resid_tot| / Wth0  (scalar figure of merit)
     """
     from scipy.integrate import cumulative_trapezoid
-    from kprad.util.solver import fkprad
+    from main.util.solver import fkprad
 
     tV = np.asarray(res["tV"], dtype=float)
     Nt = len(tV)

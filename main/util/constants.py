@@ -11,12 +11,6 @@ _MU0 = scipy.constants.mu_0
 _MP_OVER_ME = scipy.constants.proton_mass / scipy.constants.electron_mass
 
 
-# ---- Data paths -----------------------------------------------
-_CRETIN_PATH = (
-    "/Users/plh/research/cretin/{el}_rates_CRETIN/{el}_rate_ne{ne}_Ta{ta}.dat"
-)
-
-
 # ---- Model parameters --------------------------------------------------
 # Hard floors applied to ODE to avoid singularities
 _MIN_NE = 0.3  # electron density [cm^-3]
@@ -31,14 +25,6 @@ _W_FLOOR_MJ = 1e-6
 # eta ~ Te^-1.5 scaling is replaced by this value. Without this
 # cap, Te^-1.5 goes out of control for Te < 1, which increases the resistance
 # and explodes the ohmic heating term.
-
-# ---- Output ------------------------------------------------------------
-# Default directory for saved simulation results (HDF5). Overridable per-run
-# via the ``simulation.output_dir`` config key or the ``$KPRAD_OUTPUT_DIR``
-# environment variable; see postprocess.save_results_h5.
-import os as _os
-
-OUTPUT_DIR = _os.environ.get("KPRAD_OUTPUT_DIR", _os.path.expanduser("~/kprad_output"))
 
 
 # ---- Per-species material properties ------------------------------------

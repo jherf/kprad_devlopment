@@ -11,9 +11,9 @@ import yaml
 import numpy as np
 
 
-from kprad.util.injectors import MGI, Pellet, WallSputter
-from kprad.util.layout import SolverLayout
-from kprad.util.constants import _EE
+from main.util.injectors import MGI, Pellet, WallSputter
+from main.util.layout import SolverLayout
+from main.util.constants import _EE
 
 
 # ---- Config loader
@@ -95,7 +95,7 @@ def config_loader(path: Union[str, Path], verbose: bool = False) -> dict | None:
 def _load_equilibrium(gfile_path: str, cocos: int = 1, verbose: bool = False):
     """Load and summarise a G-EQDSK file.  Returns None on failure."""
     try:
-        from kprad.util.equilibrium import load_gfile, summary as eq_summary
+        from main.util.equilibrium import load_gfile, summary as eq_summary
 
         eq = load_gfile(gfile_path, cocos=cocos)
         if verbose:
@@ -139,7 +139,7 @@ def _apply_equilibrium(config: dict, eq) -> None:
 def _load_profiles(h5_path: str, prof_cfg: dict):
     """Load profiles from HDF5.  Returns None on failure."""
     try:
-        from kprad.util.profile import read_profiles_h5
+        from main.util.profile import read_profiles_h5
 
         return read_profiles_h5(
             h5_path,
@@ -169,7 +169,7 @@ def _apply_profiles(config: dict, profiles, eq=None) -> None:
     Does NOT set initial.species.Ne — pre-existing Ne is a simulation
     choice (typically 0.0 for a pure-krypton or pure-neon SPI shot).
     """
-    from kprad.util.profile import derive_initial_conditions
+    from main.util.profile import derive_initial_conditions
 
     fC = config.get("profiles", {}).get("fC", 0.02)
     Vp = config.get("initial", {}).get("Vp", 20.0)
