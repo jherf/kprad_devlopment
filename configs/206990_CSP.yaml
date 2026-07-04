@@ -1,0 +1,98 @@
+# 180016_SPI.yaml
+# kprad simulation configuration — DIII-D shot 180016
+# Wth0 ≈ 2.3 MJ | 380 Torr-L Ne SPI, 0 Torr-L D2
+#
+# ── Equilibrium (optional) ────────────────────────────────────────────────────
+# Uncomment to derive Rmaj, Ip, li, a, Ap, Vp automatically from a g-file.
+# Overrides the corresponding fields in `initial` and `tokamak.Rmaj`.
+equilibrium:
+   gfile:  /Users/plh/research/gfiles/g206990.01480  # G-EQDSK file
+   cocos:  1                            # default; try 11 if Ampere check fails
+
+# ── Profiles (optional) ───────────────────────────────────────────────────────
+# Uncomment to derive Te, Ti, and species densities from 1-D ne/Te profiles.
+# When combined with an equilibrium gfile, Ti is computed from the
+# stored-energy split  Ti = (Wth_MHD − Wth_e) / (1.5 Vp ni).
+#
+# profiles:
+#   h5_file:   /path/to/profiles.h5
+#   rho_key:   rho         # dataset name for ρ array  (default: rho)
+#   ne_key:    ne          # dataset name for ne        (default: ne)
+#   Te_key:    Te          # dataset name for Te        (default: Te)
+#   ne_units:  1e19_m3     # unit string (see profiles.py docstring)
+#   Te_units:  eV
+#   time_idx:  -1          # row to use for 2-D (time, rho) arrays; -1 = last
+#   fC:        0.02        # carbon fraction  n_C / n_e
+
+
+# ------ Initial Plasma Conditions ------
+initial:
+
+  # Per-elements initial densities [1e13 cm^-3], assumed fully ionized
+  species:
+    H:  3.125     # = 3.5 / 1.12 Hydrogen ion (H2) density (divide by 1.12 for standard 2% C)
+    C:  0.0625      # = 0.02 * H (Initial carbon ion (C7) density, 2%)
+
+  Te:     1.4        # initial electron temperature [keV]
+  Ti:     0.84        # initial ion temperature [keV], derived to get correct thermal energy 
+  Ip:     1.3         # initial plasma current [MA]
+  li:     0.8         # Current quench self-inductance [-]
+  a:      0.4         # plasma minor radius during the CQ
+  Ap:     1.7         # plasma cross section area [m^2]
+  Vp:     17.7        # plasma volume [m^3]
+
+# ------ Tokamak and Wall Parameters ------
+tokamak:
+  Rmaj:   1.7         # major radius [m]
+  Rw:     1.0         # wall minor radius
+  dw:     0.01        # wall thickness [m]
+  Cw:     6.0         # wall circumference [m]
+  etaw:   1.95e-6     # wall resistivity [Ohm * m] (1.3e-6  * 1.5 for port cutouts)
+
+
+# ------ Particle Source(s) ------
+sources:
+  # --- D2 Shell
+  - type:         mgi
+    species:      ['D2']  # For list of currently supported, see globals.py
+    V_torrL:      [18]      # Ne quantity in pellet
+    profile:      gaussian      # Delivery profile, options: exponential, gaussian, square
+    # Profile-specific inputs
+    # gaussian requires t_peak, dt_pulse
+    # square requires t_start, t_end
+    # exponential requires t_start, tau
+    profile_kwargs:
+      t_peak:       4.0           # peak deposition time [ms]
+      dt_pulse:     1.8           # Gaussian 1/e width [ms] (~3ms FWHM)
+      #t_start:      0.1           # Start time for the exponential and square pulse
+      # t_end:        1.0           # End time for square MGI pulse
+      #tau:          1.0           # Decay constant for the exponential decrease
+
+  # --- Ne core
+  - type:         mgi
+    species:      ['Ne']  # For list of currently supported, see globals.py
+    V_torrL:      [3]      # Ne quantity in pellet
+    profile:      gaussian      # Delivery profile, options: exponential, gaussian, square
+    # Profile-specific inputs
+    # gaussian requires t_peak, dt_pulse
+    # square requires t_start, t_end
+    # exponential requires t_start, tau
+    profile_kwargs:
+      t_peak:       4.0          # peak deposition time [ms]
+      dt_pulse:     1.8           # Gaussian 1/e width [ms] (~3ms FWHM)
+      #t_start:      0.1           # Start time for the exponential and square pulse
+      # t_end:        1.0           # End time for square MGI pulse
+      #tau:          1.0           # Decay constant for the exponential decrease
+
+  - type:         wall_sputter
+    species:      'C'           # Element of the sputtered species
+    Ndot_TQ:      0.0           # Sputtered delivery rate to core during the thermal quench [1e20 particles / ms]
+    Ndot_CQ:      0.0           # Sputtered delivery rate to core during the current quench [1e20 particles / ms]
+    Te0_eV:       10
+
+# ------ Simulation ------
+simulation:
+  trange:         [0, 100]       # Time range to solve the problem [ms]
+  nt:             300           # Number of time points
+  Nr:             1             # Number of rho grid points (=1 is for 0D)
+  atomic_backend: Cretin        # Backend atomic rate coefficents to use: Cretin or ADAS  

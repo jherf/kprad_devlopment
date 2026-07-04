@@ -1,0 +1,145 @@
+# 180016_SPI.yaml
+# kprad simulation configuration — DIII-D shot 180016
+# Wth0 ≈ 2.3 MJ | 380 Torr-L Ne SPI, 0 Torr-L D2
+#
+# ── Equilibrium (optional) ────────────────────────────────────────────────────
+# Uncomment to derive Rmaj, Ip, li, a, Ap, Vp automatically from a g-file.
+# Overrides the corresponding fields in `initial` and `tokamak.Rmaj`.
+equilibrium:
+   gfile:  null # e.g. /Users/plh/research/gfiles/g206990.01495  (G-EQDSK file)
+                # NOTE: use `null` or leave empty — a bare `None` is parsed by
+                # YAML as the *string* "None"
+   cocos:  1                            # default; try 11 if Ampere check fails
+
+# ── Profiles (optional) ───────────────────────────────────────────────────────
+# Uncomment to derive Te, Ti, and species densities from 1-D ne/Te profiles.
+# When combined with an equilibrium gfile, Ti is computed from the
+# stored-energy split  Ti = (Wth_MHD − Wth_e) / (1.5 Vp ni).
+#
+# profiles:
+#   h5_file:   /path/to/profiles.h5
+#   rho_key:   rho         # dataset name for ρ array  (default: rho)
+#   ne_key:    ne          # dataset name for ne        (default: ne)
+#   Te_key:    Te          # dataset name for Te        (default: Te)
+#   ne_units:  1e19_m3     # unit string (see profiles.py docstring)
+#   Te_units:  eV
+#   time_idx:  -1          # row to use for 2-D (time, rho) arrays; -1 = last
+#   fC:        0.02        # carbon fraction  n_C / n_e
+
+# ── Radial transport (optional, active only when simulation.Nr > 1) ──────────
+# Fickian diffusion of thermal-energy densities and charge-state densities
+# between radial cells (finite-volume, exactly conservative, zero-flux
+# boundaries — no edge sink yet). Omit the block, set enabled: false, or
+# leave a coefficient at 0 to switch a channel off.
+# transport:
+#   chi_e: 1.0             # electron heat diffusivity [m^2/s]
+#   chi_i: 1.0             # ion heat diffusivity [m^2/s]
+#   D_n:   1.0             # particle diffusivity, all charge states [m^2/s]
+#   # enabled: false       # master switch
+
+
+# ------ Initial Plasma Conditions ------
+initial:
+
+  # Per-elements initial densities [1e13 cm^-3], assumed fully ionized
+  species:
+    H:  4.910714      # = 5.5 / 1.12 Hydrogen ion (H2) density (divide by 1.12 for standard 2% C)
+    C:  0.098214      # = 0.02 * H (Initial carbon ion (C7) density, 2%)
+
+
+  Te:     4.3         # initial electron temperature [keV]
+  Ti:     4.84        # initial ion temperature [keV], derived to get correct thermal energy 
+  Ip:     1.6         # initial plasma current [MA]
+  li:     0.8         # Current quench self-inductance [-]
+  a:      0.8         # plasma minor radius during the CQ
+  Ap:     2.0         # plasma cross section area [m^2]
+  Vp:     20.0        # plasma volume [m^3]
+
+# ------ Tokamak and Wall Parameters ------
+tokamak:
+  Rmaj:   1.7         # major radius [m]
+  Rw:     1.0         # wall minor radius
+  dw:     0.01        # wall thickness [m]
+  Cw:     6.0         # wall circumference [m]
+  etaw:   1.95e-6     # wall resistivity [Ohm * m] (1.3e-6  * 1.5 for port cutouts)
+
+
+# ------ Particle Source(s) ------
+sources:
+  - type:         mgi
+    species:      ['Ne']  # For list of currently supported, see globals.py
+    V_torrL:      [65]      # Ne quantity in pellet
+    profile:      gaussian      # Delivery profile, options: exponential, gaussian, square
+    # Optional Torr-L -> particles conversion controls:
+    # T_K:           293.15    # gas temperature for the ideal-gas conversion [K]
+    # torrL_to_1e20: 0.322     # explicit factor [1e20 molecules/Torr-L];
+    #                          # 0.322 reproduces the MATLAB KPRAD value (~300 K)
+
+    # --------- Profile-specific inputs ---------
+    # gaussian requires       t_peak,   dt_pulse
+    # square requires         t_start,  t_end
+    # exponential requires    t_start,  tau
+    # --------------------------------------------
+    profile_kwargs:
+      t_peak:       5.0           # peak deposition time [ms]
+      dt_pulse:     1.8           # Gaussian 1/e width [ms] (~3ms FWHM)
+      #t_start:      0.1           # Start time for the exponential and square pulse
+      # t_end:        1.0           # End time for square MGI pulse
+      #tau:          1.0           # Decay constant for the exponential decrease
+
+  # Single spherical pellet (Parks NGS ablation from the instantaneous
+  # volume-averaged Te and ne; remaining inventory is an ODE state variable).
+  # - type:       pellet
+  #   species:    ['D2', 'Ne']   # solid mixture; only D2 / Ne supported
+  #   V_torrL:    [200, 65]      # gas-equivalent inventory per species [Torr-L]
+  #   # N_1e20:   [65.9, 21.4]   # ...or give molecule counts directly [1e20]
+  #   t_start:    2.0            # time the pellet enters the plasma [ms]
+  #   # T_K / torrL_to_1e20      # optional, as for mgi
+
+  # Cryogenic shell pellet: Ne core inside a D2 outer shell, ablated
+  # sequentially — pure-D2 Parks law at the outer radius while the shell
+  # lives, then pure-Ne at the core radius once it is exposed.
+  # - type:        csp
+  #   shell_torrL: 200           # D2 shell, gas-equivalent [Torr-L]
+  #   core_torrL:  65            # Ne core,  gas-equivalent [Torr-L]
+  #   # shell_1e20 / core_1e20   # ...or molecule counts directly [1e20]
+  #   t_start:     2.0           # time the pellet enters the plasma [ms]
+  #   # breach_um: 10            # shell->core hand-off smoothing width [um]
+  #   # T_K / torrL_to_1e20      # optional, as for mgi
+
+  # Shattered pellet injection: fragment train with Parks/Mott-Linfoot
+  # size distribution and a velocity spread, so fragments arrive at the
+  # plasma staggered in time (t_k = t_shatter + L_flight/v_k).
+  # - type:      spi
+  #   species:   ['Ne']          # or ['D2','Ne'] mixture (uniform fragments)
+  #   V_torrL:   [65]            # total pellet inventory [Torr-L] (or N_1e20)
+  #   N_frag:    30              # target fragment count (sets K0-dist scale)
+  #   v_mean:    200.0           # mean fragment speed [m/s]
+  #   dv_frac:   0.2             # fractional velocity spread (sigma/v_mean)
+  #   L_flight:  1.0             # shatter point -> plasma distance [m]
+  #   t_shatter: 2.0             # shatter time [ms]
+  #   # size_dist: parks         # 'parks' (default) or 'equal'
+  #   # seed:      0             # RNG seed (vary for ensemble studies)
+  #   # dt_ramp:   0.02          # per-fragment turn-on smoothing [ms]
+
+
+  - type:         wall_sputter
+    species:      'C'           # Element of the sputtered species
+    Ndot_TQ:      0.0           # Sputtered delivery rate to core during the thermal quench [1e20 particles / ms]
+    Ndot_CQ:      0.0           # Sputtered delivery rate to core during the current quench [1e20 particles / ms]
+    # Te0_eV:     4300          # optional TQ-window reference Te [eV]; defaults to
+    #                           # the initial plasma Te. Sets the upper TQ edge as
+    #                           # 0.9 * Te0_eV — do NOT set this near the 10 eV CQ
+    #                           # threshold or the TQ window becomes empty.
+
+# ------ Simulation ------
+simulation:
+  trange:         [0, 20]       # Time range to solve the problem [ms]
+  nt:             400           # Number of time points
+  Nr:             1             # Number of rho grid points (=1 is for 0-D)
+  atomic_backend: cretin        # Backend atomic rate coefficents to use: Cretin or ADAS
+
+  # ---- Output (HDF5) ----
+  save_h5:        true          # save results to HDF5 (default: true)
+  # output_dir:   /path/to/dir  # overrides constants.OUTPUT_DIR
+  # output_file:  /path/run.h5  # exact path; overrides output_dir + auto name
