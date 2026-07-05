@@ -56,7 +56,7 @@ sources:
   - type:         pellet
     species:      ['Ne', "D2"]  # For list of currently supported, see globals.py
     V_torrL:      [100, 200]      # Ne quantity in pellet
-    t_start:      1.0         # Injection time [ms]
+    t_start:      10.0         # Injection time [ms]
 
 # ------ Simulation ------
 simulation:

@@ -16,7 +16,7 @@ KPRAD_INPUTS_DIRECTORY: Path = KPRAD_PARENT_DIRECTORY / "configs"
 CRETIN_PATH = "/Users/plh/research/cretin/{el}_rates_CRETIN/{el}_rate_ne{ne}_Ta{ta}.dat"
 OUTPUT_DIR = "/Users/plh/research/kprad/"
 DEFAULT_CONFIG_PATH = (
-    "/Users/plh/Documents/git/kprad_devlopment/configs/206990_PELLET.yaml"
+    "/Users/plh/Documents/git/kprad_devlopment/configs/180016_SPI.yaml"
 )
 
 

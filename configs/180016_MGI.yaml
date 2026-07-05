@@ -66,11 +66,26 @@ tokamak:
 
 # ------ Particle Source(s) ------
 sources:
-  - type:         spi
+  - type:         mgi
     species:      ['Ne']  # For list of currently supported, see globals.py
-    N_frag:       100 # Number of SPI fragments
-    v_mean:       330 # Pellet speed 
     V_torrL:      [65]      # Ne quantity in pellet
+    profile:      gaussian      # Delivery profile, options: exponential, gaussian, square
+    # Optional Torr-L -> particles conversion controls:
+    # T_K:           293.15    # gas temperature for the ideal-gas conversion [K]
+    # torrL_to_1e20: 0.322     # explicit factor [1e20 molecules/Torr-L];
+    #                          # 0.322 reproduces the MATLAB KPRAD value (~300 K)
+
+    # --------- Profile-specific inputs ---------
+    # gaussian requires       t_peak,   dt_pulse
+    # square requires         t_start,  t_end
+    # exponential requires    t_start,  tau
+    # --------------------------------------------
+    profile_kwargs:
+      t_peak:       5.0           # peak deposition time [ms]
+      dt_pulse:     1.8           # Gaussian 1/e width [ms] (~3ms FWHM)
+      #t_start:      0.1           # Start time for the exponential and square pulse
+      # t_end:        1.0           # End time for square MGI pulse
+      #tau:          1.0           # Decay constant for the exponential decrease
 
   # Single spherical pellet (Parks NGS ablation from the instantaneous
   # volume-averaged Te and ne; remaining inventory is an ODE state variable).

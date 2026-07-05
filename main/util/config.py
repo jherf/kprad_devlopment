@@ -11,7 +11,7 @@ import yaml
 import numpy as np
 
 
-from main.util.injectors import MGI, Pellet, WallSputter
+from main.util.injectors import MGI, Pellet, SPI, CSP, WallSputter
 from main.util.layout import SolverLayout
 from main.util.constants import _EE
 
@@ -44,15 +44,21 @@ def config_loader(path: Union[str, Path], verbose: bool = False) -> dict | None:
                 elements.append(sym)
 
         # Add the elements from the particle sources
+        from main.util.injectors import _to_plasma_species
+
         for src in config.get("sources", []):
             syms = src.get("species", [])
             # Making sure Ar doesn't convert to 'A' and 'r'
             if isinstance(syms, str):
                 syms = [syms]
             for sym in syms:
-                if sym not in seen:
-                    seen.add(sym)
-                    elements.append(sym)
+                # Molecular input species (D2, H2, ...) enter the plasma as
+                # their atomic symbol (H); use that for the layout element
+                # list so a D2/Ne pellet does not create a spurious 'D2' block.
+                psym = _to_plasma_species(sym)[0]
+                if psym not in seen:
+                    seen.add(psym)
+                    elements.append(psym)
 
         config["elements"] = elements
 
@@ -139,7 +145,7 @@ def _apply_equilibrium(config: dict, eq) -> None:
 def _load_profiles(h5_path: str, prof_cfg: dict):
     """Load profiles from HDF5.  Returns None on failure."""
     try:
-        from main.util.profile import read_profiles_h5
+        from kprad.util.profile import read_profiles_h5
 
         return read_profiles_h5(
             h5_path,
@@ -283,6 +289,17 @@ def build_injectors(config: dict, Te0_eV: float) -> list:
         V_torrL (gas-equivalent [Torr-L]) or N_1e20 ([1e20 molecules]);
         t_start (optional, [ms]), T_K / torrL_to_1e20 (optional, as MGI).
 
+    ``csp``
+        Cryogenic shell pellet: Ne core inside a D2 shell, ablated
+        sequentially. Keys: shell_torrL + core_torrL (or shell_1e20 +
+        core_1e20); t_start, breach_um, T_K, torrL_to_1e20 (optional).
+
+    ``spi``
+        Shattered pellet: fragment train with Parks/Mott-Linfoot sizes and
+        a velocity spread. Keys: species, V_torrL (or N_1e20), N_frag,
+        v_mean [m/s], dv_frac, L_flight [m], t_shatter [ms], size_dist
+        ('parks'/'equal'), seed, dt_ramp, T_K, torrL_to_1e20 (optional).
+
     ``wall_sputter``
         Keys: species, Ndot_TQ, Ndot_CQ, Te0_eV (optional; defaults to the
         initial plasma Te, which sets the upper TQ-window edge as
@@ -310,6 +327,36 @@ def build_injectors(config: dict, Te0_eV: float) -> list:
                     species=src["species"],
                     V_TorrL=src.get("V_torrL"),
                     t_start=float(src.get("t_start", 0.0)),
+                    T_K=float(src.get("T_K", 293.15)),
+                    torrL_to_1e20=src.get("torrL_to_1e20"),
+                )
+            )
+        elif t.lower() == "csp":
+            injectors.append(
+                CSP(
+                    shell_TorrL=src.get("shell_torrL"),
+                    core_TorrL=src.get("core_torrL"),
+                    shell_1e20=src.get("shell_1e20"),
+                    core_1e20=src.get("core_1e20"),
+                    t_start=float(src.get("t_start", 0.0)),
+                    T_K=float(src.get("T_K", 293.15)),
+                    torrL_to_1e20=src.get("torrL_to_1e20"),
+                    breach_um=float(src.get("breach_um", 10.0)),
+                )
+            )
+        elif t.lower() == "spi":
+            injectors.append(
+                SPI(
+                    species=src["species"],
+                    V_TorrL=src.get("V_torrL"),
+                    N_frag=int(src.get("N_frag", 30)),
+                    v_mean=float(src.get("v_mean", 200.0)),
+                    dv_frac=float(src.get("dv_frac", 0.2)),
+                    L_flight=float(src.get("L_flight", 1.0)),
+                    t_shatter=float(src.get("t_shatter", 0.0)),
+                    size_dist=src.get("size_dist", "parks"),
+                    seed=int(src.get("seed", 0)),
+                    dt_ramp=float(src.get("dt_ramp", 0.02)),
                     T_K=float(src.get("T_K", 293.15)),
                     torrL_to_1e20=src.get("torrL_to_1e20"),
                 )
