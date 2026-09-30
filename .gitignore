@@ -223,11 +223,11 @@ __marimo__/
 .DS_Store
 
 # run outputs and external data
-output/*
+output/**
 !output/.gitkeep
 data/**
 !data/**/.gitkeep
-benchmarks/*
+benchmarks/**
 !benchmarks/.gitkeep
-configs/*
+configs/**
 !configs/.gitkeep
