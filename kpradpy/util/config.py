@@ -11,9 +11,10 @@ import yaml
 import numpy as np
 
 
-from main.util.injectors import MGI, Pellet, SPI, CSP, WallSputter
-from main.util.layout import SolverLayout
-from main.util.constants import _EE
+from kpradpy.util.injectors import MGI, Pellet, SPI, CSP, GradedCSP, WallSputter
+from kpradpy.util.layout import SolverLayout
+from kpradpy.util.constants import _EE
+from kpradpy.globals import resolve_data_path
 
 
 # ---- Config loader
@@ -44,7 +45,7 @@ def config_loader(path: Union[str, Path], verbose: bool = False) -> dict | None:
                 elements.append(sym)
 
         # Add the elements from the particle sources
-        from main.util.injectors import _to_plasma_species
+        from kpradpy.util.injectors import _to_plasma_species
 
         for src in config.get("sources", []):
             syms = src.get("species", [])
@@ -101,8 +102,9 @@ def config_loader(path: Union[str, Path], verbose: bool = False) -> dict | None:
 def _load_equilibrium(gfile_path: str, cocos: int = 1, verbose: bool = False):
     """Load and summarise a G-EQDSK file.  Returns None on failure."""
     try:
-        from main.util.equilibrium import load_gfile, summary as eq_summary
+        from kpradpy.util.equilibrium import load_gfile, summary as eq_summary
 
+        gfile_path = resolve_data_path(gfile_path)
         eq = load_gfile(gfile_path, cocos=cocos)
         if verbose:
             print(eq_summary(eq))
@@ -145,10 +147,10 @@ def _apply_equilibrium(config: dict, eq) -> None:
 def _load_profiles(h5_path: str, prof_cfg: dict):
     """Load profiles from HDF5.  Returns None on failure."""
     try:
-        from kprad.util.profile import read_profiles_h5
+        from kpradpy.util.profile import read_profiles_h5
 
         return read_profiles_h5(
-            h5_path,
+            resolve_data_path(h5_path),
             rho_key=prof_cfg.get("rho_key", "rho"),
             ne_key=prof_cfg.get("ne_key", "ne"),
             Te_key=prof_cfg.get("Te_key", "Te"),
@@ -175,7 +177,7 @@ def _apply_profiles(config: dict, profiles, eq=None) -> None:
     Does NOT set initial.species.Ne — pre-existing Ne is a simulation
     choice (typically 0.0 for a pure-krypton or pure-neon SPI shot).
     """
-    from main.util.profile import derive_initial_conditions
+    from kpradpy.util.profile import derive_initial_conditions
 
     fC = config.get("profiles", {}).get("fC", 0.02)
     Vp = config.get("initial", {}).get("Vp", 20.0)
@@ -300,6 +302,11 @@ def build_injectors(config: dict, Te0_eV: float) -> list:
         v_mean [m/s], dv_frac, L_flight [m], t_shatter [ms], size_dist
         ('parks'/'equal'), seed, dt_ramp, T_K, torrL_to_1e20 (optional).
 
+    ``graded_csp``
+        Keys: D2_torrL + Ne_torrL (or D2_1e20 + Ne_1e20), profile
+              ('tanh' | 'linear' | 'sharp'), grade_width, t_start,
+              T_K, torrL_to_1e20.
+
     ``wall_sputter``
         Keys: species, Ndot_TQ, Ndot_CQ, Te0_eV (optional; defaults to the
         initial plasma Te, which sets the upper TQ-window edge as
@@ -357,6 +364,22 @@ def build_injectors(config: dict, Te0_eV: float) -> list:
                     size_dist=src.get("size_dist", "parks"),
                     seed=int(src.get("seed", 0)),
                     dt_ramp=float(src.get("dt_ramp", 0.02)),
+                    T_K=float(src.get("T_K", 293.15)),
+                    torrL_to_1e20=src.get("torrL_to_1e20"),
+                )
+            )
+        elif t.lower() in ("graded_csp", "gradedcsp"):
+            # Shell pellet with a continuous radial Ne/D2 profile. Accepts
+            # either the Torr-L pair or the 1e20 pair, as GradedCSP does.
+            injectors.append(
+                GradedCSP(
+                    D2_TorrL=src.get("D2_torrL"),
+                    Ne_TorrL=src.get("Ne_torrL"),
+                    D2_1e20=src.get("D2_1e20"),
+                    Ne_1e20=src.get("Ne_1e20"),
+                    profile=src.get("profile", "tanh"),
+                    grade_width=float(src.get("grade_width", 0.15)),
+                    t_start=float(src.get("t_start", 0.0)),
                     T_K=float(src.get("T_K", 293.15)),
                     torrL_to_1e20=src.get("torrL_to_1e20"),
                 )

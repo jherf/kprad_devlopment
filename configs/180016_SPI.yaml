@@ -6,7 +6,7 @@
 # Uncomment to derive Rmaj, Ip, li, a, Ap, Vp automatically from a g-file.
 # Overrides the corresponding fields in `initial` and `tokamak.Rmaj`.
 equilibrium:
-   gfile:  null # e.g. /Users/plh/research/gfiles/g206990.01495  (G-EQDSK file)
+   gfile:  null # e.g. gfiles/g206990.01495  (G-EQDSK file)
                 # NOTE: use `null` or leave empty — a bare `None` is parsed by
                 # YAML as the *string* "None"
    cocos:  1                            # default; try 11 if Ampere check fails
@@ -26,16 +26,12 @@ equilibrium:
 #   time_idx:  -1          # row to use for 2-D (time, rho) arrays; -1 = last
 #   fC:        0.02        # carbon fraction  n_C / n_e
 
-# ── Radial transport (optional, active only when simulation.Nr > 1) ──────────
-# Fickian diffusion of thermal-energy densities and charge-state densities
-# between radial cells (finite-volume, exactly conservative, zero-flux
-# boundaries — no edge sink yet). Omit the block, set enabled: false, or
-# leave a coefficient at 0 to switch a channel off.
-# transport:
-#   chi_e: 1.0             # electron heat diffusivity [m^2/s]
-#   chi_i: 1.0             # ion heat diffusivity [m^2/s]
-#   D_n:   1.0             # particle diffusivity, all charge states [m^2/s]
-#   # enabled: false       # master switch
+# ── Radial transport ──────────────────────────────────────────────────────────
+# NOT IMPLEMENTED. The solver evolves Nr cells with no inter-cell transport;
+# cells are coupled only through the global circuit and the volume-averaged
+# state seen by injectors. Nr > 1 is therefore only meaningful once a
+# transport or deposition-profile model is added. Keep Nr: 1 for all
+# literature (0-D) benchmarks.
 
 
 # ------ Initial Plasma Conditions ------
@@ -90,6 +86,17 @@ sources:
   #   # shell_1e20 / core_1e20   # ...or molecule counts directly [1e20]
   #   t_start:     2.0           # time the pellet enters the plasma [ms]
   #   # breach_um: 10            # shell->core hand-off smoothing width [um]
+  #   # T_K / torrL_to_1e20      # optional, as for mgi
+
+  # Graded shell pellet: continuous radial Ne/D2 composition, so the plume
+  # composition evolves as the surface recedes. Parks lambda(X) is evaluated
+  # at the ablating surface. One aux state (remaining volume).
+  # - type:        graded_csp
+  #   D2_torrL:    200           # gas-equivalent [Torr-L]  (or D2_1e20)
+  #   Ne_torrL:    65            #                          (or Ne_1e20)
+  #   profile:     tanh          # 'tanh' | 'linear' | 'sharp'
+  #   grade_width: 0.15          # transition width in normalized radius
+  #   t_start:     2.0           # time the pellet enters the plasma [ms]
   #   # T_K / torrL_to_1e20      # optional, as for mgi
 
   # Shattered pellet injection: fragment train with Parks/Mott-Linfoot

@@ -7,6 +7,7 @@ import abc
 import numpy as np
 import scipy.constants as _sc
 
+
 def torr_l_to_particles(V_torr_l: float, T_K: float = 293.15) -> float:
     """Convert a gas amount from Torr-L to number of particles.
 
@@ -20,7 +21,7 @@ def torr_l_to_particles(V_torr_l: float, T_K: float = 293.15) -> float:
     T_K     : float, optional. Gas temperature [K]. Default: 293.15
     """
 
-    PV = V_torr_l * _sc.torr * 1.0e-3 # [Torr -> Pa] * [L -> m^3] = Pa m^3
+    PV = V_torr_l * _sc.torr * 1.0e-3  # [Torr -> Pa] * [L -> m^3] = Pa m^3
     return PV / (_sc.k * T_K)
 
 
@@ -49,7 +50,7 @@ class DeliveryProfile(abc.ABC):
 class GaussianProfile(DeliveryProfile):
     """Gaussian delivery profile"""
 
-    def __init__(self, t_peak: float, dt_pulse: float) -> None:
+    def __init__(self, t_peak: float = 5.0, dt_pulse: float = 1.8) -> None:
         self.t_peak = float(t_peak)
         self.dt = float(dt_pulse)
         self._norm = 1.0 / (np.sqrt(np.pi) * self.dt)
@@ -62,7 +63,7 @@ class GaussianProfile(DeliveryProfile):
 
     def __repr__(self) -> str:
         return f"GaussianProfile(t_peak={self.t_peak}, dt={self.dt})"
-    
+
 
 class SquareProfile(DeliveryProfile):
     """Top-hat: constant delivery on [t_start, t_end]."""
@@ -94,7 +95,9 @@ class ExponentialProfile(DeliveryProfile):
         self.tau = float(tau)
 
     def shape(self, t: float) -> float:
-        return np.exp(-(t - self.t_start) / self.tau) / self.tau if t >= self.t_start else 0.0
+        return (
+            np.exp(-(t - self.t_start) / self.tau) / self.tau if t >= self.t_start else 0.0
+        )
 
     def first_light_time(self, threshold_frac: float = 0.01) -> float:
         return self.t_start
@@ -102,9 +105,10 @@ class ExponentialProfile(DeliveryProfile):
     def __repr__(self) -> str:
         return f"ExponentialProfile(t_start={self.t_start}, tau={self.tau})"
 
+
 _PROFILE_REGISTRY: dict[str, type] = {
-    "gaussian":    GaussianProfile,
-    "square":      SquareProfile,
+    "gaussian": GaussianProfile,
+    "square": SquareProfile,
     "exponential": ExponentialProfile,
 }
 
@@ -120,5 +124,3 @@ def make_profile(name: str, **kwargs) -> DeliveryProfile:
     if key not in _PROFILE_REGISTRY:
         raise ValueError(f"Unknown profile {name!r}. Options: {sorted(_PROFILE_REGISTRY)}")
     return _PROFILE_REGISTRY[key](**kwargs)
-
-

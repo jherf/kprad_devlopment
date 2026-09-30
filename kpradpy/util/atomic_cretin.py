@@ -27,10 +27,10 @@ Charge state indexing is 0-based here (z=0 neutral, ..., z = Z-1 fully stripped)
 import numpy as np
 import warnings
 from scipy.interpolate import RegularGridInterpolator
-from main.util.read_rate_nLTE import read_rate_nLTE
-from main.util.atomic_adas import _PERIODIC, _IONIZATION_ENERGIES, _ADAS_ALIAS
-from main.util.constants import _MIN_NE, _MIN_TE, _MIN_TA
-from main.globals import CRETIN_PATH
+from kpradpy.util.read_rate_nLTE import read_rate_nLTE
+from kpradpy.util.atomic_adas import _PERIODIC, _IONIZATION_ENERGIES, _ADAS_ALIAS
+from kpradpy.util.constants import _MIN_NE, _MIN_TE, _MIN_TA
+from kpradpy.globals import CRETIN_PATH
 
 # Default grid (matches all three MATLAB scripts)
 _DEFAULT_neV = [1e10, 1e12, 1e14, 1e16]  # electron densities      [1/cm^3]
@@ -87,7 +87,7 @@ class CretinRates:
         self,
         elements: list,
         method: str = "rgi",
-        rgi_method: str = "linear",
+        rgi_method: str = "cubic",
         NTepp: int = 15,
         data_path: str | None = None,
     ):
@@ -124,9 +124,7 @@ class CretinRates:
 
         unknown = [s for s in self.elements if s not in _PERIODIC]
         if unknown:
-            raise ValueError(
-                f"Unknown element(s) {unknown}. Known: {sorted(_PERIODIC)}"
-            )
+            raise ValueError(f"Unknown element(s) {unknown}. Known: {sorted(_PERIODIC)}")
         missing_ei = [s for s in self.elements if s not in _IONIZATION_ENERGIES]
         if missing_ei:
             raise ValueError(
@@ -152,9 +150,7 @@ class CretinRates:
     def _check_element(self, symbol: str) -> str:
         sym = _adas_element(symbol)
         if sym not in self._interp:
-            raise KeyError(
-                f"Element {symbol} not loaded. Loaded elements {self.elements}"
-            )
+            raise KeyError(f"Element {symbol} not loaded. Loaded elements {self.elements}")
         return sym
 
     def _exp_tag(self, value):
@@ -174,9 +170,7 @@ class CretinRates:
             return self.build_rgi_tables(
                 ASrad, ASion, ASrec, Te, neV, TaV, rgi_method=self._rgi_method
             )
-        return self.fit_rate_tables(
-            ASrad, ASion, ASrec, Te, neV, TaV, NTepp=self._NTepp
-        )
+        return self.fit_rate_tables(ASrad, ASion, ASrec, Te, neV, TaV, NTepp=self._NTepp)
 
     @staticmethod
     def _log_points(ne, Te, Ta) -> np.ndarray:
@@ -411,9 +405,7 @@ class CretinRates:
         Zmax = _PERIODIC[element]
         fit_ = self._interp[element]
         if iZ > Zmax:
-            raise ValueError(
-                f"Input iZ value cannot be larger than {Zmax} for {element}"
-            )
+            raise ValueError(f"Input iZ value cannot be larger than {Zmax} for {element}")
 
         # Clamp the (0-based) charge-state index to a valid array index [0, NZ-1]
         iZuse = int(np.clip(iZ, 0, fit_["NZ"] - 1))
@@ -440,15 +432,9 @@ class CretinRates:
 
     def _evaluate_poly_many(self, which_, iZuse, Ta, ne, Te, fit_) -> np.ndarray:
         """Nested-polynomial evaluation (original back-end), vectorized."""
-        log_ne = (
-            np.log(np.clip(ne, fit_["nelim"][0], fit_["nelim"][1])) - fit_["lognemean"]
-        )
-        log_Te = (
-            np.log(np.clip(Te, fit_["Telim"][0], fit_["Telim"][1])) - fit_["logTemean"]
-        )
-        log_Ta = (
-            np.log(np.clip(Ta, fit_["Talim"][0], fit_["Talim"][1])) - fit_["logTamean"]
-        )
+        log_ne = np.log(np.clip(ne, fit_["nelim"][0], fit_["nelim"][1])) - fit_["lognemean"]
+        log_Te = np.log(np.clip(Te, fit_["Telim"][0], fit_["Telim"][1])) - fit_["logTemean"]
+        log_Ta = np.log(np.clip(Ta, fit_["Talim"][0], fit_["Talim"][1])) - fit_["logTamean"]
         log_Ta, log_ne, log_Te = log_Ta.ravel(), log_ne.ravel(), log_Te.ravel()
 
         NTa, Nne, NTe = fit_["NTa"], fit_["Nne"], fit_["NTe"]
@@ -520,9 +506,7 @@ class CretinRates:
         Ta = np.asarray(Ta, float)
         per_charge_Ta = Ta.ndim == 2  # (n, Nr): one Ta per charge state
         if per_charge_Ta:
-            ne_b, Te_b = np.broadcast_arrays(
-                np.asarray(ne, float), np.asarray(Te, float)
-            )
+            ne_b, Te_b = np.broadcast_arrays(np.asarray(ne, float), np.asarray(Te, float))
             ne_f = np.atleast_1d(ne_b).ravel()
             Te_f = np.atleast_1d(Te_b).ravel()
             Nr = ne_f.size

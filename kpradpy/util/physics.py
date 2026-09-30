@@ -6,7 +6,7 @@ All functions accept scalars or NumPy arrays (per-cell evaluation in 1-D).
 """
 
 import numpy as np
-from main.util.constants import _MIN_TE
+from kpradpy.util.constants import _MIN_TE
 
 
 # ---- Coulomb Logarithm

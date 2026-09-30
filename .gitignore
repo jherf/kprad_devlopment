@@ -221,3 +221,13 @@ __marimo__/
 
 *.pyc
 .DS_Store
+
+# run outputs and external data
+output/*
+!output/.gitkeep
+data/**
+!data/**/.gitkeep
+benchmarks/*
+!benchmarks/.gitkeep
+configs/*
+!configs/.gitkeep

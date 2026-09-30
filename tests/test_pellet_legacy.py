@@ -27,20 +27,20 @@ Everything prints as it goes; assertions guard the numbers.
 
 import numpy as np
 
-from main.util.injectors import Pellet
-from main.util.injectors import (
+from kpradpy.util.injectors import Pellet
+from kpradpy.util.injectors import (
     _W_MOL,
     _N_AVOGADRO,
     _PARKS_LAMBDA_A,
     _PARKS_LAMBDA_B,
 )
-from main.util.constants import _RHO_SOLID
+from kpradpy.util.constants import _RHO_SOLID
 
-from main.util.injectors import Pellet
-from main.util.injectors import (
+from kpradpy.util.injectors import Pellet
+from kpradpy.util.injectors import (
     _W_MOL,
     _N_AVOGADRO,
     _PARKS_LAMBDA_A,
     _PARKS_LAMBDA_B,
 )
-from main.util.constants import _RHO_SOLID
+from kpradpy.util.constants import _RHO_SOLID

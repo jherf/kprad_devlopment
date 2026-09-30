@@ -6,7 +6,7 @@
 # Uncomment to derive Rmaj, Ip, li, a, Ap, Vp automatically from a g-file.
 # Overrides the corresponding fields in `initial` and `tokamak.Rmaj`.
 equilibrium:
-   gfile:  /Users/plh/research/gfiles/g206990.01480  # G-EQDSK file
+   gfile:  gfiles/g206990.01480  # G-EQDSK file
    cocos:  1                            # default; try 11 if Ampere check fails
 
 # ── Profiles (optional) ───────────────────────────────────────────────────────

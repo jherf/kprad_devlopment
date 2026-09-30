@@ -214,9 +214,7 @@ def read_rate_nLTE(filename, element=None, max_cols=_MAX_COLS):
             element = m.group(1)
 
     if element not in ELEMENT_CONFIG:
-        raise ValueError(
-            f"{element} not found, known elements: {ELEMENT_CONFIG.keys()}"
-        )
+        raise ValueError(f"{element} not found, known elements: {ELEMENT_CONFIG.keys()}")
 
     cfg = ELEMENT_CONFIG.get(element, {}) if element else {}
 

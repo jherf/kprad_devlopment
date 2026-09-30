@@ -35,6 +35,12 @@ PYTHONPATH). Example:
     python compare_rates.py --element C --Ta 1e14 --save C_compare.png
 """
 
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(_REPO_ROOT))
+
 import argparse
 
 
@@ -46,8 +52,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 
-from main.util.atomic_cretin import CretinRates
-from main.util.atomic_adas import AuroraRates
+from kpradpy.util.atomic_cretin import CretinRates
+from kpradpy.util.atomic_adas import AuroraRates
 
 
 # ---------------------------------------------------------------------------
@@ -105,8 +111,8 @@ def _plot_panel(ax, x, cret, aur, charges, colors, floor, title, ylabel, xlabel)
     cret = _mask(cret, floor)
     aur = _mask(aur, floor)
     for z in charges:
-        ax.plot(x, cret[z], "-", color=colors[z], lw=1.4)
-        ax.plot(x, aur[z], "--", color=colors[z], lw=1.1, alpha=0.9)
+        ax.plot(x, cret[z], linestyle="solid", color=colors[z], lw=1.4)
+        ax.plot(x, aur[z], linestyle="dashed", color=colors[z], lw=1.1, alpha=0.9)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_title(title)
@@ -256,12 +262,10 @@ def make_figure(cret, aur, sym, Ta, ne_fixed, Te_fixed, Te_arr, ne_arr, charges,
         Line2D([0], [0], color="k", ls="-", lw=1.6, label="CRETIN (nLTE)"),
         Line2D([0], [0], color="k", ls="--", lw=1.3, label="ADAS / Aurora"),
     ]
-    axes[0, 2].legend(
-        handles=style_handles, loc="lower left", fontsize=9, framealpha=0.9
-    )
+    axes[0, 2].legend(handles=style_handles, loc="lower left", fontsize=9, framealpha=0.9)
 
     fig.suptitle(
-        rf"{sym}: CRETIN vs ADAS rate coefficients   "
+        rf"{sym}: CRETIN (solid) vs ADAS (dashed) rate coefficients   "
         rf"($T_a = {Ta:.1e}$ cm$^{{-2}}$)",
         fontsize=14,
     )
@@ -354,9 +358,7 @@ def main():
 
     print(f"  Ta        = {args.Ta:.3e} cm^-2")
     print(f"  Te sweep  : {Te_lo:.3e} -> {Te_hi:.3e} eV   (fixed ne = {args.ne:.3e})")
-    print(
-        f"  ne sweep  : {ne_lo:.3e} -> {ne_hi:.3e} cm^-3 (fixed Te = {args.Te:.3g} eV)"
-    )
+    print(f"  ne sweep  : {ne_lo:.3e} -> {ne_hi:.3e} cm^-3 (fixed Te = {args.Te:.3g} eV)")
 
     fig = make_figure(
         cret,

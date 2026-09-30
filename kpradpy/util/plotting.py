@@ -62,9 +62,7 @@ def _mark_first_light(ax, tfirst):
 
 
 def _fmt_val(v, fmt=".2f"):
-    return (
-        "N/A" if v is None or (isinstance(v, float) and np.isnan(v)) else format(v, fmt)
-    )
+    return "N/A" if v is None or (isinstance(v, float) and np.isnan(v)) else format(v, fmt)
 
 
 # --------------------------------------------------------------------------- #
@@ -177,9 +175,7 @@ def plot_main_results(
     ax = axes[1, 1]
     ax.plot(tV, res["Wthe"], "C0", linewidth=1.8, label=r"$W_{th,e}$")
     ax.plot(tV, res["Wthi"], "C2", linewidth=1.2, label=r"$W_{th,i}$")
-    ax.plot(
-        tV, res["Wthe"] + res["Wthi"], "k--", linewidth=1.0, label=r"$W_{th}$ total"
-    )
+    ax.plot(tV, res["Wthe"] + res["Wthi"], "k--", linewidth=1.0, label=r"$W_{th}$ total")
     _decorate_quench(ax, tV, qt, show_legend_marker=False)
     _mark_first_light(ax, tfirst)
     ax.set(xlabel="time [ms]", ylabel=r"$W_{th}$ [MJ]", title="Thermal energy")
@@ -222,9 +218,7 @@ def plot_main_results(
                 linewidth=1.5,
                 label=sym,
             )
-        ax.semilogy(
-            tV, np.maximum(total_prad, 1e-10), "k--", linewidth=1.2, label="total"
-        )
+        ax.semilogy(tV, np.maximum(total_prad, 1e-10), "k--", linewidth=1.2, label="total")
         # i1, i2 = qt.get("i1"), qt.get("i2")
         # if i1 is not None:
         #    ax.axvline(tV[i1], color="k", linestyle=":", alpha=0.6)

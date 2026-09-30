@@ -31,7 +31,7 @@ into the flat vector. The RHS therefore never does index arithmetic.
 
 import numpy as np
 
-_HEADER_SIZE = 2 # Ip, Iw
+_HEADER_SIZE = 2  # Ip, Iw
 
 
 class SolverLayout:
@@ -98,7 +98,6 @@ class SolverLayout:
         offset += self.n_aux
 
         self.size = offset
-
 
     # ----------------------------------------------------------------
     # ---- Index lookups
@@ -169,7 +168,6 @@ class SolverLayout:
                 raise ValueError("aux values given but layout has n_aux=0")
             self.aux(solV)[:] = np.asarray(aux, dtype=float)
         return solV
-
 
     def __contains__(self, sym):
         return sym in self._species

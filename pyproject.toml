@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kpradpy"
+version = "0.2.0"
+description = "Python port of the KPRAD 0-D tokamak disruption / radiative-shutdown model"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+keywords = ["tokamak", "disruption", "KPRAD", "SPI", "MGI", "fusion"]
+
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pyyaml>=6",
+    "matplotlib>=3.7",
+    "h5py>=3.8",
+    "freeqdsk>=0.5",
+]
+
+[project.optional-dependencies]
+adas = ["aurora-fusion"]          # AuroraRates backend
+test = ["pytest>=7"]
+dev  = ["pytest>=7", "black", "ruff"]
+
+[project.scripts]
+kprad = "kpradpy.main_script:cli"
+
+[tool.setuptools.packages.find]
+include = ["kpradpy*"]
+
+
+[tool.black]
+line-length = 92
+
+[tool.ruff]
+line-length = 92
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "slow: longer-running convergence studies",
+    "needs_data: requires CRETIN/ADAS tables under KPRAD_DATA",
+]

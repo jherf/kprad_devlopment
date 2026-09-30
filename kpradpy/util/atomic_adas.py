@@ -33,9 +33,8 @@ Prad            : eV cm^3 / s
 """
 
 import numpy as np
-import aurora
 from scipy.interpolate import RegularGridInterpolator
-from main.util.constants import _EE, _MIN_NE, _MIN_TE
+from kpradpy.util.constants import _EE, _MIN_NE, _MIN_TE
 
 # ---- Atomic tables --------------------------------------------------
 _RATE_KEYS = ["scd", "acd", "plt", "prb"]
@@ -139,9 +138,7 @@ class AuroraRates:
 
         unknown = [s for s in self.elements if s not in _PERIODIC]
         if unknown:
-            raise ValueError(
-                f"Unknown element(s) {unknown}. Known: {sorted(_PERIODIC)}"
-            )
+            raise ValueError(f"Unknown element(s) {unknown}. Known: {sorted(_PERIODIC)}")
         missing_ei = [s for s in self.elements if s not in _IONIZATION_ENERGIES]
         if missing_ei:
             raise ValueError(
@@ -170,9 +167,7 @@ class AuroraRates:
     def _check_element(self, symbol: str) -> str:
         sym = _adas_element(symbol)
         if sym not in self._interp:
-            raise KeyError(
-                f"Element {symbol} not loaded. Loaded elements {self.elements}"
-            )
+            raise KeyError(f"Element {symbol} not loaded. Loaded elements {self.elements}")
         return sym
 
     @staticmethod
@@ -202,9 +197,7 @@ class AuroraRates:
     def _evaluate(self, symbol: str, key: str, indx: int, ne, Te) -> float:
         """Scalar convenience wrapper around _evaluate_many."""
         symbol = _adas_element(symbol)
-        return float(
-            self._evaluate_many(symbol, key, indx, self._log_points(ne, Te))[0]
-        )
+        return float(self._evaluate_many(symbol, key, indx, self._log_points(ne, Te))[0])
 
     # --------------------------------------------------------------------------
     # ---- Building functions
@@ -223,6 +216,16 @@ class AuroraRates:
         LTe, Lne = np.meshgrid(self._log_te, self._log_ne, indexing="ij")
 
         # Get the atomic data
+        # Imported here, not at module level, so the CRETIN backend (which
+        # reuses this module's periodic-table constants) works without the
+        # optional `aurora-fusion` package installed.
+        try:
+            import aurora
+        except ImportError as exc:  # pragma: no cover
+            raise ImportError(
+                "AuroraRates needs the optional 'aurora-fusion' package: "
+                "pip install 'kpradpy[adas]'"
+            ) from exc
         atom_table = aurora.get_atom_data(symbol, _RATE_KEYS)
 
         # Interpolate the atomic data along the grid

@@ -28,7 +28,6 @@ from typing import Optional, Tuple
 
 import numpy as np
 from scipy.interpolate import RectBivariateSpline
-from freeqdsk import geqdsk
 
 MU0 = 4.0e-7 * np.pi
 
@@ -74,12 +73,8 @@ class Equilibrium:
     # Derived magnetics
     Bt0: float = field(default=np.nan)  # B_t at R0
     li3: float = field(default=np.nan)  # internal inductance, l_i(3)
-    Lp_internal_H: float = field(
-        default=np.nan
-    )  # internal L_p from |B_p|^2 inside LCFS
-    Lp_total_grid_H: float = field(
-        default=np.nan
-    )  # total L_p from |B_p|^2 over full grid
+    Lp_internal_H: float = field(default=np.nan)  # internal L_p from |B_p|^2 inside LCFS
+    Lp_total_grid_H: float = field(default=np.nan)  # total L_p from |B_p|^2 over full grid
     Lp_formula_H: float = field(default=np.nan)  # total L_p, Wesson elongated formula
     Ip_check_A: float = field(default=np.nan)  # Ampere's-law sanity check on LCFS
 
@@ -94,6 +89,8 @@ def load_gfile(path: str | Path, cocos: int = 1) -> Equilibrium:
     """Read a G-EQDSK file with freeqdsk and return a populated Equilibrium."""
     path = Path(path)
     with open(path, "r") as fh:
+        from freeqdsk import geqdsk  # optional dependency, only needed here
+
         g = geqdsk.read(fh, cocos=cocos)
 
     # Build (R,Z) grid. freeqdsk stores psi as psi[nR, nZ] with R along axis 0.
@@ -268,11 +265,7 @@ def compute_inductance(eq: Equilibrium) -> None:
     eq.Lp_formula_H = (
         MU0
         * eq.R0
-        * (
-            np.log(8.0 * eq.R0 / (eq.a * np.sqrt(max(eq.kappa, 1e-6))))
-            + 0.5 * eq.li3
-            - 2.0
-        )
+        * (np.log(8.0 * eq.R0 / (eq.a * np.sqrt(max(eq.kappa, 1e-6)))) + 0.5 * eq.li3 - 2.0)
     )
 
     # Ampere's-law check: Ip = (1/mu0) * oint B_pol · dl around the LCFS.

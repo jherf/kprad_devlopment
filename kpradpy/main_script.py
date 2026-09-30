@@ -27,17 +27,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp, trapezoid
 
-from main.globals import KPRAD_PARENT_DIRECTORY, DEFAULT_CONFIG_PATH
+from kpradpy.globals import KPRAD_PARENT_DIRECTORY, DEFAULT_CONFIG_PATH
 
-from main.util.physics import log_lambda_ei
-from main.util.constants import _MU0
-from main.util.solver import fkprad
-from main.util.atomic_adas import AuroraRates
-from main.util.atomic_cretin import CretinRates
-from main.util.plotting import plot_main_results
-from main.util.config import config_loader, build_initial_state, build_injectors
-from main.util.layout import SolverLayout
-from main.util.postprocess import (
+from kpradpy.util.physics import log_lambda_ei
+from kpradpy.util.constants import _MU0
+from kpradpy.util.solver import fkprad
+from kpradpy.util.atomic_adas import AuroraRates
+from kpradpy.util.atomic_cretin import CretinRates
+from kpradpy.util.plotting import plot_main_results
+from kpradpy.util.config import config_loader, build_initial_state, build_injectors
+from kpradpy.util.layout import SolverLayout
+from kpradpy.util.postprocess import (
     postprocess,
     compute_energy_balance,
     compute_injection,
@@ -46,7 +46,7 @@ from main.util.postprocess import (
     compute_radiated_power,
     save_results_h5,
 )
-from main.util.profile import uniform_grid
+from kpradpy.util.profile import uniform_grid
 
 
 def main(config_path: str | None = None, show: bool = True) -> dict:
@@ -104,7 +104,13 @@ def main(config_path: str | None = None, show: bool = True) -> dict:
     if atom_.upper() == "ADAS":
         rates = AuroraRates(elements=elements)
     elif atom_.upper() == "CRETIN":
-        rates = CretinRates(elements=elements)
+        # cretin_method: 'rgi' (default; linear on the log-log table) or
+        # 'poly' (degree-14 log-Te polynomial, as the MATLAB code used).
+        # Pin 'poly' for MATLAB-parity runs; prefer 'rgi' otherwise.
+        rates = CretinRates(
+            elements=elements,
+            method=config["simulation"].get("cretin_method", "rgi"),
+        )
     else:
         raise RuntimeError(f"Please enter a valid Atomic database backend")
     print(f"→ Loaded rate coefficients from {atom_}")
@@ -295,5 +301,21 @@ def main(config_path: str | None = None, show: bool = True) -> dict:
     return res
 
 
+def cli(argv=None):
+    """Console entry point: ``kprad [config.yaml] [--no-show]``."""
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        prog="kprad", description="Run a KPRAD 0-D disruption simulation."
+    )
+    ap.add_argument(
+        "config", nargs="?", default=None,
+        help="YAML config (default: $KPRAD_CONFIG or configs/180016_SPI.yaml)",
+    )
+    ap.add_argument("--no-show", action="store_true", help="do not open figures")
+    args = ap.parse_args(argv)
+    return main(config_path=args.config, show=not args.no_show)
+
+
 if __name__ == "__main__":
-    res = main()
+    cli()
