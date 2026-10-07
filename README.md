@@ -41,7 +41,7 @@ See `kpradpy/globals.py` for every variable.
 ## Run
 
 ```bash
-kprad configs/180016_SPI.yaml            # console entry point
+kpradpy configs/180016_SPI.yaml            # console entry point
 python -m kpradpy.main_script configs/180016_SPI.yaml
 ```
 

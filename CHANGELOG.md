@@ -54,3 +54,6 @@
 - `kprad` CLI with argparse.
 - Configs: removed the phantom `transport:` block (never implemented);
   added a `graded_csp` example; gfile paths made `KPRAD_DATA`-relative.
+
+## Unreleased
+- Console script renamed `kprad` to `kpradpy` to avoid shell function clashing
