@@ -41,6 +41,36 @@ def test_no_stale_package_references():
 
 
 def test_default_paths_are_not_machine_specific():
-    from kpradpy import globals as g
-    for name in ("CRETIN_PATH", "OUTPUT_DIR", "DEFAULT_CONFIG_PATH"):
-        assert "/Users/" not in str(getattr(g, name)), name
+    """No hardcoded home-directory paths, and with no KPRAD_* variables set,
+    every default path lies inside the repository.
+
+    (An earlier version asserted "/Users/" not in each path, which fails on
+    any Mac because the repo itself lives under /Users/.)
+    """
+    import os
+    import re
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+
+    # 1. Source code: no literal home-directory paths
+    bad = [
+        f"{py.relative_to(root)}:{i}"
+        for py in (root / "kpradpy").rglob("*.py")
+        for i, line in enumerate(py.read_text().splitlines(), 1)
+        if re.search(r"['\"](/Users/|/home/)", line)
+    ]
+    assert not bad, "hardcoded home paths:\n" + "\n".join(bad)
+
+    # 2. Defaults: fresh interpreter, KPRAD_* variables removed
+    env = {k: v for k, v in os.environ.items() if not k.startswith("KPRAD_")}
+    names = ("CRETIN_PATH", "OUTPUT_DIR", "DEFAULT_CONFIG_PATH")
+    code = "from kpradpy import globals as g; " + "; ".join(
+        f"print(g.{n})" for n in ("REPO_ROOT",) + names
+    )
+    out = subprocess.check_output([sys.executable, "-c", code], env=env, text=True)
+    repo, *paths = out.splitlines()
+    for name, path in zip(names, paths):
+        assert path.startswith(repo), f"{name} = {path} is outside the repo"
