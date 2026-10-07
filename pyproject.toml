@@ -26,7 +26,7 @@ test = ["pytest>=7"]
 dev  = ["pytest>=7", "black", "ruff"]
 
 [project.scripts]
-kprad = "kpradpy.main_script:cli"
+kpradpy = "kpradpy.main_script:cli"
 
 [tool.setuptools.packages.find]
 include = ["kpradpy*"]

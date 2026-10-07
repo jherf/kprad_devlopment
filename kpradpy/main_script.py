@@ -220,9 +220,7 @@ def main(config_path: str | None = None, show: bool = True) -> dict:
     for sym, d in compute_pellet_injection(res, injectors).items():
         if sym in injection:
             injection[sym]["rate"] = injection[sym]["rate"] + d["rate"]
-            injection[sym]["cumulative"] = (
-                injection[sym]["cumulative"] + d["cumulative"]
-            )
+            injection[sym]["cumulative"] = injection[sym]["cumulative"] + d["cumulative"]
         else:
             injection[sym] = d
     Pradtot = float(trapezoid(sum(Prad.values()), tV))
@@ -240,9 +238,7 @@ def main(config_path: str | None = None, show: bool = True) -> dict:
     if qt is not None:
         if qt["i3"] is not None:
             dIpdt = np.gradient(res["Ip"], tV, edge_order=2)
-            Ephi = (1e9 * _MU0 * li / (4 * np.pi)) * (
-                -dIpdt + alphaL * res["Iw"] / tauw
-            )
+            Ephi = (1e9 * _MU0 * li / (4 * np.pi)) * (-dIpdt + alphaL * res["Iw"] / tauw)
             Ephi_CQ = float(Ephi[qt["i3"]])
             densecrit = 8e14 * Ephi_CQ
             print(
@@ -302,14 +298,16 @@ def main(config_path: str | None = None, show: bool = True) -> dict:
 
 
 def cli(argv=None):
-    """Console entry point: ``kprad [config.yaml] [--no-show]``."""
+    """Console entry point: ``kpradpy [config.yaml] [--no-show]``."""
     import argparse
 
     ap = argparse.ArgumentParser(
-        prog="kprad", description="Run a KPRAD 0-D disruption simulation."
+        prog="kpradpy", description="Run a KPRAD 0-D disruption simulation."
     )
     ap.add_argument(
-        "config", nargs="?", default=None,
+        "config",
+        nargs="?",
+        default=None,
         help="YAML config (default: $KPRAD_CONFIG or configs/180016_SPI.yaml)",
     )
     ap.add_argument("--no-show", action="store_true", help="do not open figures")
